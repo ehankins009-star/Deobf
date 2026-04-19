@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Lua Script Viewer</title>
+
+  <!-- Monaco Editor -->
+  <script src="https://unpkg.com/monaco-editor@0.45.0/min/vs/loader.js"></script>
+
+  <style>
+    body {
+      margin:0;
+      background:#0f0f0f;
+      color:white;
+      font-family:Arial;
+      text-align:center;
+    }
+
+    #topbar {
+      padding:10px;
+      background:#1a1a1a;
+    }
+
+    input {
+      width:60%;
+      padding:10px;
+      border:none;
+      border-radius:6px;
+    }
+
+    button {
+      padding:10px 15px;
+      margin-left:5px;
+      background:#ffd700;
+      border:none;
+      border-radius:6px;
+      cursor:pointer;
+    }
+
+    #editor {
+      height:80vh;
+      width:100%;
+    }
+  </style>
+</head>
+
+<body>
+
+<div id="topbar">
+  <input id="url" placeholder="Paste raw script link here..." />
+  <button onclick="loadScript()">Load</button>
+  <button onclick="formatCode()">Format</button>
+</div>
+
+<div id="editor"></div>
+
+<script src="script.js"></script>
+
+</body>
+</html>
+let editor;
+
+require.config({ paths: { vs: 'https://unpkg.com/monaco-editor@0.45.0/min/vs' }});
+
+require(['vs/editor/editor.main'], function () {
+  editor = monaco.editor.create(document.getElementById('editor'), {
+    value: "-- Your script will appear here",
+    language: "lua",
+    theme: "vs-dark",
+    automaticLayout: true
+  });
+});
+
+async function loadScript() {
+  const url = document.getElementById("url").value;
+
+  try {
+    const proxy = "https://api.allorigins.win/raw?url=";
+    const res = await fetch(proxy + encodeURIComponent(url));
+    const text = await res.text();
+
+    editor.setValue(text);
+  } catch (err) {
+    editor.setValue("-- Failed to load script");
+  }
+}
+
+function formatCode() {
+  let code = editor.getValue();
+
+  code = code
+    .replace(/;/g, ";\n")
+    .replace(/then/g, "then\n")
+    .replace(/end/g, "\nend");
+
+  editor.setValue(code);
+}
